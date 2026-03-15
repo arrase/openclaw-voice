@@ -6,6 +6,7 @@ src/openclaw_voice/audio.py
 src/openclaw_voice/chunking.py
 src/openclaw_voice/cli.py
 src/openclaw_voice/config.py
+src/openclaw_voice/service.py
 src/openclaw_voice/tts.py
 src/openclaw_voice.egg-info/PKG-INFO
 src/openclaw_voice.egg-info/SOURCES.txt
@@ -13,6 +14,7 @@ src/openclaw_voice.egg-info/dependency_links.txt
 src/openclaw_voice.egg-info/entry_points.txt
 src/openclaw_voice.egg-info/requires.txt
 src/openclaw_voice.egg-info/top_level.txt
-tests/test_audio.py
-tests/test_chunking.py
-tests/test_config.py
+src/openclaw_voice/messaging/__init__.py
+src/openclaw_voice/messaging/base.py
+src/openclaw_voice/messaging/discord_provider.py
+src/openclaw_voice/messaging/factory.py

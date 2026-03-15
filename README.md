@@ -1,33 +1,37 @@
 # OpenClaw Voice
 
-OpenClaw Voice is a small Python CLI that turns a UTF-8 text file into a single WAV file using Qwen TTS voice cloning. Audio generation runs locally on your own machine, so it does not depend on a hosted inference API or incur per-request API costs. It is intended to be installed as a shell command and called from OpenClaw or any other automation that can invoke a regular executable.
+OpenClaw Voice is a small Python CLI that turns a UTF-8 text file into cloned speech using Qwen TTS and sends the final audio as an MP3 attachment through a configured Discord bot. Audio generation runs locally on your own machine, so it does not depend on a hosted inference API or incur per-request API costs. It is intended to be installed as a shell command and called from OpenClaw or any other automation that can invoke a regular executable.
 
 ## Features
 
 - Installs a command named `openclaw-voice`
 - Runs speech synthesis locally instead of calling a paid external API
-- Includes an OpenClaw skill so the agent knows how to invoke the service
-- Loads runtime settings from `~/.openclaw-voice/config.yaml` by default
+- Sends the generated audio as a compressed MP3 attachment by Discord DM
+- Selects the delivery bot from the `tts` section in `~/.openclaw-voice/config.yaml`
+- Matches bot names case-insensitively so `Narrator` and `narrator` resolve to the same entry
 - Accepts an optional `--config` override for alternate configuration files
 - Splits long input text paragraph by paragraph, then recursively splits oversized paragraphs
-- Synthesizes one chunk at a time and concatenates everything into a single WAV file
+- Synthesizes one chunk at a time and concatenates everything into a single waveform before compression
 - Inserts configurable silence between chunks to smooth the joins
-- Creates the output directory automatically if it does not exist
+- Includes an OpenClaw skill so the agent knows how to invoke the service
 
 ## Requirements
 
 - Python 3.11 or newer
 - A CUDA-capable GPU with a working PyTorch CUDA runtime
 - A reference speaker WAV file and its matching transcript text file
+- A Discord bot token for each bot you want to use
+- A Discord user ID that will receive the direct message
 
 OpenClaw Voice currently requires CUDA. Set `device_map` to a CUDA target such as `cuda:0` and run it on a machine with a compatible GPU.
+
+The configured Discord bot must be able to reach the target user. In practice, that usually means the bot and the user share at least one server, and the user allows direct messages from server members.
 
 ## Installation
 
 ### Install with pipx
 
 ```bash
-# Install from GitHub
 pipx install git+https://github.com/arrase/openclaw-voice.git
 ```
 
@@ -46,7 +50,7 @@ mkdir -p ~/.openclaw-voice
 cp config/config.yaml ~/.openclaw-voice/config.yaml
 ```
 
-Then edit `~/.openclaw-voice/config.yaml` so it points to your own reference audio and transcription.
+Then edit `~/.openclaw-voice/config.yaml` so it points to your own reference audio, transcription, and one or more messaging bots.
 
 Example:
 
@@ -59,6 +63,11 @@ ref_audio_path: /absolute/path/to/reference.wav
 ref_text_path: /absolute/path/to/reference.txt
 inter_chunk_silence_ms: 150
 max_chunk_chars: 1400
+tts:
+  - name: narrator
+    provider: discord
+    token: YOUR_DISCORD_BOT_TOKEN
+    user_id: 123456789012345678
 ```
 
 ### Configuration fields
@@ -71,43 +80,54 @@ max_chunk_chars: 1400
 - `ref_text_path`: Plain-text transcription that matches the reference speaker audio.
 - `inter_chunk_silence_ms`: Silence inserted between generated chunks.
 - `max_chunk_chars`: Maximum size for a chunk before recursive splitting is used.
+- `tts`: Non-empty list of delivery bot definitions.
+- `tts[].name`: Human-readable bot identifier selected with `--bot-name`.
+- `tts[].provider`: Messaging provider name. The current implementation supports `discord`.
+- `tts[].token`: Discord bot token.
+- `tts[].user_id`: Discord user ID that will receive the MP3 attachment.
 
 Relative paths in the config file are resolved from the directory that contains `config.yaml`.
+
+Bot names are normalized to lowercase before comparison. That means `Narrator`, `NARRATOR`, and `narrator` all resolve to the same configured entry. Two configured names that differ only by case are rejected as duplicates.
 
 ## Usage
 
 Basic invocation:
 
 ```bash
-openclaw-voice input.txt output.wav
+openclaw-voice --input-text input.txt --bot-name narrator
 ```
 
 Use a different configuration file:
 
 ```bash
-openclaw-voice input.txt output.wav --config /path/to/config.yaml
+openclaw-voice --input-text input.txt --bot-name narrator --config /path/to/config.yaml
 ```
 
 Run through the module entry point instead of the installed script:
 
 ```bash
-python -m openclaw_voice input.txt output.wav
+python -m openclaw_voice --input-text input.txt --bot-name narrator
 ```
 
-The CLI exits with code `1` when configuration loading, file I/O, chunk generation, or WAV assembly fails.
+The CLI exits with code `1` when configuration loading, file I/O, chunk generation, MP3 encoding, or Discord delivery fails.
+
+OpenClaw Voice no longer writes a local output file during normal execution. The generated waveform is compressed to MP3 in memory and sent directly through the selected provider.
 
 ## OpenClaw integration
 
-The repository includes an OpenClaw skill at [skill/openclaw-voice/SKILL.md](skill/openclaw-voice/SKILL.md). It tells OpenClaw how to use the service, which configuration file it depends on, and the expected command shape for turning a text file into a final WAV.
+The repository includes an OpenClaw skill at [skill/openclaw-voice/SKILL.md](skill/openclaw-voice/SKILL.md). It tells OpenClaw how to use the service, which configuration file it depends on, and the expected command shape for turning a text file into a Discord DM with an MP3 attachment.
 
 ## How it works
 
 1. The CLI loads and validates the YAML configuration.
-2. It reads the input text file and rejects empty input.
-3. It splits the text on paragraph boundaries.
-4. Any paragraph longer than `max_chunk_chars` is split again with `RecursiveCharacterTextSplitter`.
-5. The Qwen TTS model generates one waveform per chunk using the configured reference voice.
-6. All waveforms are concatenated, optional silence is inserted between chunks, and the final WAV file is written to disk.
+2. It resolves the requested bot from the `tts` list using case-insensitive name matching.
+3. It reads the input text file and rejects empty input.
+4. It splits the text on paragraph boundaries.
+5. Any paragraph longer than `max_chunk_chars` is split again with `RecursiveCharacterTextSplitter`.
+6. The Qwen TTS model generates one waveform per chunk using the configured reference voice.
+7. All waveforms are concatenated, optional silence is inserted between chunks, and the final waveform is compressed to MP3 in memory.
+8. The selected messaging provider sends the MP3 attachment to the configured destination.
 
 ## Repository assets
 
@@ -119,7 +139,7 @@ The repository includes an OpenClaw skill at [skill/openclaw-voice/SKILL.md](ski
 Example end-to-end command:
 
 ```bash
-openclaw-voice examples/long_text_es.txt output_long.wav
+openclaw-voice --input-text examples/long_text_es.txt --bot-name narrator
 ```
 
 ## Flash Attention

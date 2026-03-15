@@ -6,3 +6,8 @@ ref_audio_path: /absolute/path/to/reference.wav
 ref_text_path: /absolute/path/to/reference.txt
 inter_chunk_silence_ms: 150
 max_chunk_chars: 1400
+tts:
+  - name: narrator
+    provider: discord
+    token: YOUR_DISCORD_BOT_TOKEN
+    user_id: 123456789012345678
