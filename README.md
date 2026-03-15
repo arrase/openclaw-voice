@@ -25,6 +25,8 @@ OpenClaw Voice is a small Python CLI that turns a UTF-8 text file into cloned sp
 
 OpenClaw Voice currently requires CUDA. Set `device_map` to a CUDA target such as `cuda:0` and run it on a machine with a compatible GPU.
 
+If your GPU has limited VRAM, you can switch to the smaller `Qwen/Qwen3-TTS-12Hz-0.6B-Base` model instead of `Qwen/Qwen3-TTS-12Hz-1.7B-Base`.
+
 The configured Discord bot must be able to reach the target user. In practice, that usually means the bot and the user share at least one server, and the user allows direct messages from server members.
 
 ## Installation
@@ -69,6 +71,8 @@ tts:
     token: YOUR_DISCORD_BOT_TOKEN
     user_id: 123456789012345678
 ```
+
+For lower-memory GPUs, set `model_name` to `Qwen/Qwen3-TTS-12Hz-0.6B-Base`.
 
 ### Configuration fields
 
