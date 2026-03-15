@@ -6,6 +6,7 @@ OpenClaw Voice is a small Python CLI that turns a UTF-8 text file into a single 
 
 - Installs a command named `openclaw-voice`
 - Runs speech synthesis locally instead of calling a paid external API
+- Includes an OpenClaw skill so the agent knows how to invoke the service
 - Loads runtime settings from `~/.openclaw-voice/config.yaml` by default
 - Accepts an optional `--config` override for alternate configuration files
 - Splits long input text paragraph by paragraph, then recursively splits oversized paragraphs
@@ -94,6 +95,10 @@ python -m openclaw_voice input.txt output.wav
 ```
 
 The CLI exits with code `1` when configuration loading, file I/O, chunk generation, or WAV assembly fails.
+
+## OpenClaw integration
+
+The repository includes an OpenClaw skill at [skill/openclaw-voice/SKILL.md](skill/openclaw-voice/SKILL.md). It tells OpenClaw how to use the service, which configuration file it depends on, and the expected command shape for turning a text file into a final WAV.
 
 ## How it works
 
