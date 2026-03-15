@@ -78,15 +78,7 @@ tts:
     user_id: 123456789012345678
 ```
 
-If you keep the bundled Spanish voice, you can leave the reference paths as relative paths in the config directory:
-
-```yaml
-ref_audio_path: spanish_male.wav
-ref_text_path: spanish_male.txt
-language: Spanish
-```
-
-For lower-memory GPUs, set `model_name` to `Qwen/Qwen3-TTS-12Hz-0.6B-Base`.
+**For lower-memory GPUs, set** `model_name` **to** `Qwen/Qwen3-TTS-12Hz-0.6B-Base`.
 
 ### Configuration fields
 
