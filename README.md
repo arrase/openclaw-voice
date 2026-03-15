@@ -26,7 +26,8 @@ OpenClaw Voice currently requires CUDA. Set `device_map` to a CUDA target such a
 ### Install with pipx
 
 ```bash
-pipx install /path/to/openclaw-voice
+# Install from GitHub
+pipx install git+https://github.com/arrase/openclaw-voice.git
 ```
 
 ### Install for local development
