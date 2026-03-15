@@ -1,0 +1,7 @@
+OpenClaw necesita una voz clara, estable y reutilizable para leer mensajes largos sin perder naturalidad. Esta prueba recorre un texto extenso para comprobar que la segmentacion por parrafos mantiene una diccion coherente y una prosodia razonable cuando el contenido se reparte en varios bloques.
+
+El objetivo no es solo generar audio, sino hacerlo con un flujo operativo que pueda invocarse desde otra herramienta como un comando de shell. Por eso el texto se procesa desde un fichero, la configuracion se carga desde el home del usuario y la salida final se consolida en un unico archivo WAV listo para reproducirse o integrarse en una canalizacion posterior.
+
+Tambien queremos observar que ocurre en los puntos de union entre fragmentos. Si el resultado presenta pausas excesivas, cambios bruscos de timbre o cortes extraños, esa senal nos indicara que la siguiente iteracion debe incorporar un chunking semantico mas fino o ajustes adicionales en el ensamblado del audio.
+
+Mientras tanto, esta version prioriza una implementacion limpia, facil de entender y compatible con una instalacion por pipx. Eso permite publicar el proyecto, documentarlo bien y dejar una base robusta sobre la que mejorar la calidad de la voz sin rehacer la interfaz publica ni el contrato de configuracion.

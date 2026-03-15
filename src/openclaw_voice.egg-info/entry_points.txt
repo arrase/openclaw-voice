@@ -1,0 +1,2 @@
+[console_scripts]
+openclaw-voice = openclaw_voice.cli:main

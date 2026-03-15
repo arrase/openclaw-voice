@@ -1,0 +1,119 @@
+Metadata-Version: 2.4
+Name: openclaw-voice
+Version: 0.1.0
+Summary: A pipx-installable Qwen TTS CLI for OpenClaw voice synthesis.
+Author: Arrase
+License: MIT
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: langchain-text-splitters>=0.3.8
+Requires-Dist: numpy>=2.0.0
+Requires-Dist: PyYAML>=6.0.0
+Requires-Dist: qwen-tts>=0.1.1
+Requires-Dist: soundfile>=0.13.0
+Requires-Dist: typer>=0.12.0
+
+# OpenClaw Voice
+
+OpenClaw Voice is a small Python CLI that turns a text file into a single WAV file using Qwen TTS voice cloning. It is designed to be installed with pipx and called by OpenClaw as a regular shell command.
+
+## Features
+
+- Installs as a shell command named `openclaw-voice`
+- Loads runtime settings from `~/.openclaw-voice/config.yaml`
+- Uses a paragraph-first chunking strategy powered by `langchain_text_splitters`
+- Generates one audio chunk at a time and stitches every chunk into a single WAV file
+- Keeps the implementation small, typed, and PEP 8-friendly
+
+## Installation
+
+### Option 1: install from a local checkout with pipx
+
+```bash
+pipx install /path/to/openclaw-voice
+```
+
+### Option 2: install for local development
+
+```bash
+python -m pip install -e .
+```
+
+## Configuration
+
+Create the directory and copy the example configuration:
+
+```bash
+mkdir -p ~/.openclaw-voice
+cp config/config.example.yaml ~/.openclaw-voice/config.yaml
+```
+
+Then edit `~/.openclaw-voice/config.yaml` so that it points to your reference audio and reference transcription.
+
+Example:
+
+```yaml
+model_name: Qwen/Qwen3-TTS-12Hz-1.7B-Base
+language: Spanish
+device_map: cuda:0
+dtype: bfloat16
+ref_audio_path: /absolute/path/to/reference.wav
+ref_text_path: /absolute/path/to/reference.txt
+inter_chunk_silence_ms: 150
+max_chunk_chars: 1400
+```
+
+### Configuration fields
+
+- `model_name`: Hugging Face model identifier.
+- `language`: Language label passed to Qwen TTS.
+- `device_map`: Torch device selection such as `cuda:0`, `auto`, or `cpu`.
+- `dtype`: One of `float16`, `bfloat16`, or `float32`.
+- `ref_audio_path`: Reference speaker WAV file.
+- `ref_text_path`: Plain-text transcription that matches the reference speaker audio.
+- `inter_chunk_silence_ms`: Silence inserted between generated chunks.
+- `max_chunk_chars`: Maximum chunk size before a very long paragraph is split again.
+
+Relative paths are resolved from the directory that contains `config.yaml`.
+
+## Usage
+
+```bash
+openclaw-voice input.txt output.wav
+```
+
+You can override the default configuration path if needed:
+
+```bash
+openclaw-voice input.txt output.wav --config /path/to/config.yaml
+```
+
+## How chunking works
+
+The first release uses paragraph-based chunking. The input text is split on blank lines with `langchain_text_splitters`. If a paragraph is still too large for the configured `max_chunk_chars`, it is split again with a recursive text splitter so the TTS model receives manageable chunks.
+
+This keeps the CLI stable today while leaving room for a true semantic chunking strategy in a later release.
+
+## End-to-end example
+
+An example long-form Spanish input is included in [examples/long_text_es.txt](examples/long_text_es.txt).
+
+The repository reference audio used during development lives in [assets/reference/bodega.wav](assets/reference/bodega.wav), and the example configuration lives in [config/config.example.yaml](config/config.example.yaml).
+
+Run it like this:
+
+```bash
+openclaw-voice examples/long_text_es.txt output_long.wav
+```
+
+## Flash Attention
+
+If `flash_attn` is available in the environment, OpenClaw Voice enables `flash_attention_2` automatically. It is optional by design because it often fails to build from source on systems without a complete CUDA toolchain.
+
+## Development
+
+Run the test suite with:
+
+```bash
+python -m unittest discover -s tests
+```

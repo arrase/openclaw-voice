@@ -1,0 +1,8 @@
+model_name: Qwen/Qwen3-TTS-12Hz-1.7B-Base
+language: Spanish
+device_map: cuda:0
+dtype: bfloat16
+ref_audio_path: /absolute/path/to/reference.wav
+ref_text_path: /absolute/path/to/reference.txt
+inter_chunk_silence_ms: 150
+max_chunk_chars: 1400

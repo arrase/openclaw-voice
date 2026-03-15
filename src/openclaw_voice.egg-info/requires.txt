@@ -1,0 +1,6 @@
+langchain-text-splitters>=0.3.8
+numpy>=2.0.0
+PyYAML>=6.0.0
+qwen-tts>=0.1.1
+soundfile>=0.13.0
+typer>=0.12.0
