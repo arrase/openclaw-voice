@@ -1,19 +1,8 @@
 # OpenClaw Voice
 
-OpenClaw Voice is a small Python CLI that turns a UTF-8 text file into cloned speech using Qwen TTS and sends the final audio as an MP3 attachment through a configured Discord bot. Audio generation runs locally on your own machine, so it does not depend on a hosted inference API or incur per-request API costs. It is intended to be installed as a shell command and called from OpenClaw or any other automation that can invoke a regular executable.
+OpenClaw Voice is a Python CLI that turns a UTF-8 text file into cloned speech with Qwen TTS and delivers the result as an MP3 attachment through a configured Discord bot.
 
-## Features
-
-- Installs a command named `openclaw-voice`
-- Runs speech synthesis locally instead of calling a paid external API
-- Sends the generated audio as a compressed MP3 attachment by Discord DM
-- Selects the delivery bot from the `tts` section in `~/.openclaw-voice/config.yaml`
-- Matches bot names case-insensitively so `Narrator` and `narrator` resolve to the same entry
-- Accepts an optional `--config` override for alternate configuration files
-- Splits long input text paragraph by paragraph, then recursively splits oversized paragraphs
-- Synthesizes one chunk at a time and concatenates everything into a single waveform before compression
-- Inserts configurable silence between chunks to smooth the joins
-- Includes an OpenClaw skill so the agent knows how to invoke the service
+Speech synthesis runs locally on your own machine, so the tool does not depend on a hosted inference API or incur per-request API costs. It is designed to be installed as a regular shell command and called from OpenClaw or any other automation that can execute a standard program.
 
 ## Requirements
 
@@ -25,27 +14,19 @@ OpenClaw Voice is a small Python CLI that turns a UTF-8 text file into cloned sp
 
 OpenClaw Voice currently requires CUDA. Set `device_map` to a CUDA target such as `cuda:0` and run it on a machine with a compatible GPU.
 
-If your GPU has limited VRAM, you can switch to the smaller `Qwen/Qwen3-TTS-12Hz-0.6B-Base` model instead of `Qwen/Qwen3-TTS-12Hz-1.7B-Base`.
+If your GPU has limited VRAM, switch to the smaller `Qwen/Qwen3-TTS-12Hz-0.6B-Base` model instead of `Qwen/Qwen3-TTS-12Hz-1.7B-Base`.
 
 The configured Discord bot must be able to reach the target user. In practice, that usually means the bot and the user share at least one server, and the user allows direct messages from server members.
 
-## Installation
+## Quick start
 
-### Install with pipx
+Install the package:
 
 ```bash
 pipx install git+https://github.com/arrase/openclaw-voice.git
 ```
 
-### Install for local development
-
-```bash
-python -m pip install -e .
-```
-
-## Configuration
-
-Copy the repository template to the default runtime location:
+Create the runtime directory and copy the bundled template assets:
 
 ```bash
 mkdir -p ~/.openclaw-voice
@@ -54,13 +35,17 @@ cp assets/reference/spanish_male.wav ~/.openclaw-voice/spanish_male.wav
 cp assets/reference/spanish_male.txt ~/.openclaw-voice/spanish_male.txt
 ```
 
+Edit `~/.openclaw-voice/config.yaml` and then run:
+
+```bash
+openclaw-voice --input-text input.txt --bot-name narrator
+```
+
 The repository already includes a Spanish reference voice. The default template expects `spanish_male.wav` and `spanish_male.txt` to live next to `config.yaml` inside `~/.openclaw-voice/`.
 
-For other languages, generate your own reference WAV and a matching plain-text transcription, copy both files into `~/.openclaw-voice/`, and update `ref_audio_path`, `ref_text_path`, and `language` accordingly.
+For other languages, generate your own reference WAV and matching plain-text transcription, copy both files into `~/.openclaw-voice/`, and update `ref_audio_path`, `ref_text_path`, and `language` accordingly.
 
-Then edit `~/.openclaw-voice/config.yaml` so it points to the reference assets you want to use and to one or more messaging bots.
-
-Example:
+## Example configuration:
 
 ```yaml
 model_name: Qwen/Qwen3-TTS-12Hz-1.7B-Base
@@ -78,23 +63,21 @@ tts:
     user_id: 123456789012345678
 ```
 
-**For lower-memory GPUs, set** `model_name` **to** `Qwen/Qwen3-TTS-12Hz-0.6B-Base`.
-
 ### Configuration fields
 
-- `model_name`: Hugging Face model identifier loaded by `Qwen3TTSModel.from_pretrained`.
-- `language`: Language label passed to the model for generation.
-- `device_map`: CUDA execution target such as `cuda:0`.
-- `dtype`: One of `float16`, `bfloat16`, or `float32`.
-- `ref_audio_path`: Reference speaker WAV file. Relative paths are resolved from the directory that contains `config.yaml`.
-- `ref_text_path`: Plain-text transcription that matches the reference speaker audio. Relative paths are resolved from the directory that contains `config.yaml`.
-- `inter_chunk_silence_ms`: Silence inserted between generated chunks.
-- `max_chunk_chars`: Maximum size for a chunk before recursive splitting is used.
-- `tts`: Non-empty list of delivery bot definitions.
-- `tts[].name`: Human-readable bot identifier selected with `--bot-name`.
-- `tts[].provider`: Messaging provider name. The current implementation supports `discord`.
-- `tts[].token`: Discord bot token.
-- `tts[].user_id`: Discord user ID that will receive the MP3 attachment.
+- `model_name`: Hugging Face model identifier loaded by `Qwen3TTSModel.from_pretrained`
+- `language`: Language label passed to the model for generation
+- `device_map`: CUDA execution target such as `cuda:0`
+- `dtype`: One of `float16`, `bfloat16`, or `float32`
+- `ref_audio_path`: Reference speaker WAV file. Relative paths are resolved from the directory that contains `config.yaml`
+- `ref_text_path`: Plain-text transcription that matches the reference speaker audio. Relative paths are resolved from the directory that contains `config.yaml`
+- `inter_chunk_silence_ms`: Silence inserted between generated chunks
+- `max_chunk_chars`: Maximum size for a chunk before recursive splitting is used
+- `tts`: Non-empty list of delivery bot definitions
+- `tts[].name`: Human-readable bot identifier selected with `--bot-name`
+- `tts[].provider`: Messaging provider name. The current implementation supports `discord`
+- `tts[].token`: Discord bot token
+- `tts[].user_id`: Discord user ID that will receive the MP3 attachment
 
 The bundled Spanish voice can be copied directly into the runtime config directory and used with relative paths. For any other language, create your own WAV and matching transcription before updating the config.
 
@@ -114,30 +97,11 @@ Use a different configuration file:
 openclaw-voice --input-text input.txt --bot-name narrator --config /path/to/config.yaml
 ```
 
-Run through the module entry point instead of the installed script:
-
-```bash
-python -m openclaw_voice --input-text input.txt --bot-name narrator
-```
-
-The CLI exits with code `1` when configuration loading, file I/O, chunk generation, MP3 encoding, or Discord delivery fails.
-
-OpenClaw Voice no longer writes a local output file during normal execution. The generated waveform is compressed to MP3 in memory and sent directly through the selected provider.
+During normal execution, OpenClaw Voice does not write a local output file. The generated waveform is compressed to MP3 in memory and sent directly through the selected provider.
 
 ## OpenClaw integration
 
 The repository includes an OpenClaw skill at [skill/openclaw-voice/SKILL.md](skill/openclaw-voice/SKILL.md). It tells OpenClaw how to use the service, which configuration file it depends on, and the expected command shape for turning a text file into a Discord DM with an MP3 attachment.
-
-## How it works
-
-1. The CLI loads and validates the YAML configuration.
-2. It resolves the requested bot from the `tts` list using case-insensitive name matching.
-3. It reads the input text file and rejects empty input.
-4. It splits the text on paragraph boundaries.
-5. Any paragraph longer than `max_chunk_chars` is split again with `RecursiveCharacterTextSplitter`.
-6. The Qwen TTS model generates one waveform per chunk using the configured reference voice.
-7. All waveforms are concatenated, optional silence is inserted between chunks, and the final waveform is compressed to MP3 in memory.
-8. The selected messaging provider sends the MP3 attachment to the configured destination.
 
 ## Repository assets
 
@@ -145,24 +109,3 @@ The repository includes an OpenClaw skill at [skill/openclaw-voice/SKILL.md](ski
 - Example config template: [config/config.yaml](config/config.yaml)
 - Bundled Spanish reference audio: [assets/reference/spanish_male.wav](assets/reference/spanish_male.wav)
 - Bundled Spanish reference transcript: [assets/reference/spanish_male.txt](assets/reference/spanish_male.txt)
-
-Example end-to-end command:
-
-```bash
-openclaw-voice --input-text examples/long_text_es.txt --bot-name narrator
-```
-
-## Flash Attention
-
-If `flash_attn` is importable in the environment, OpenClaw Voice requests `flash_attention_2` automatically when loading the model. This dependency is optional by design because it often fails to build from source on systems without a full CUDA toolchain.
-
-## Development
-
-The current repository does not include an automated test suite.
-
-For a basic smoke check, use:
-
-```bash
-openclaw-voice --help
-python -m openclaw_voice --help
-```
