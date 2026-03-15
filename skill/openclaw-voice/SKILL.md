@@ -1,3 +1,8 @@
+---
+name: voice-message
+description: Use this skill when the user asks you to send an audio or voice message. The application converts text to audio and sends it automatically to the user without blocking.
+---
+
 # voice-message
 
 Use this skill when the user asks you to send an audio or voice message.
@@ -10,4 +15,4 @@ Use this skill when the user asks you to send an audio or voice message.
 
 ## Example Command
 
-`openclaw-voice --input-text /tmp/voice_message.txt --bot-name <YourName>`%
+`openclaw-voice --input-text /tmp/voice_message.txt --bot-name <YourName>`
