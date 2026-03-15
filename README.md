@@ -50,9 +50,15 @@ Copy the repository template to the default runtime location:
 ```bash
 mkdir -p ~/.openclaw-voice
 cp config/config.yaml ~/.openclaw-voice/config.yaml
+cp assets/reference/spanish_male.wav ~/.openclaw-voice/spanish_male.wav
+cp assets/reference/spanish_male.txt ~/.openclaw-voice/spanish_male.txt
 ```
 
-Then edit `~/.openclaw-voice/config.yaml` so it points to your own reference audio, transcription, and one or more messaging bots.
+The repository already includes a Spanish reference voice. The default template expects `spanish_male.wav` and `spanish_male.txt` to live next to `config.yaml` inside `~/.openclaw-voice/`.
+
+For other languages, generate your own reference WAV and a matching plain-text transcription, copy both files into `~/.openclaw-voice/`, and update `ref_audio_path`, `ref_text_path`, and `language` accordingly.
+
+Then edit `~/.openclaw-voice/config.yaml` so it points to the reference assets you want to use and to one or more messaging bots.
 
 Example:
 
@@ -72,6 +78,14 @@ tts:
     user_id: 123456789012345678
 ```
 
+If you keep the bundled Spanish voice, you can leave the reference paths as relative paths in the config directory:
+
+```yaml
+ref_audio_path: spanish_male.wav
+ref_text_path: spanish_male.txt
+language: Spanish
+```
+
 For lower-memory GPUs, set `model_name` to `Qwen/Qwen3-TTS-12Hz-0.6B-Base`.
 
 ### Configuration fields
@@ -80,8 +94,8 @@ For lower-memory GPUs, set `model_name` to `Qwen/Qwen3-TTS-12Hz-0.6B-Base`.
 - `language`: Language label passed to the model for generation.
 - `device_map`: CUDA execution target such as `cuda:0`.
 - `dtype`: One of `float16`, `bfloat16`, or `float32`.
-- `ref_audio_path`: Reference speaker WAV file.
-- `ref_text_path`: Plain-text transcription that matches the reference speaker audio.
+- `ref_audio_path`: Reference speaker WAV file. Relative paths are resolved from the directory that contains `config.yaml`.
+- `ref_text_path`: Plain-text transcription that matches the reference speaker audio. Relative paths are resolved from the directory that contains `config.yaml`.
 - `inter_chunk_silence_ms`: Silence inserted between generated chunks.
 - `max_chunk_chars`: Maximum size for a chunk before recursive splitting is used.
 - `tts`: Non-empty list of delivery bot definitions.
@@ -90,7 +104,7 @@ For lower-memory GPUs, set `model_name` to `Qwen/Qwen3-TTS-12Hz-0.6B-Base`.
 - `tts[].token`: Discord bot token.
 - `tts[].user_id`: Discord user ID that will receive the MP3 attachment.
 
-Relative paths in the config file are resolved from the directory that contains `config.yaml`.
+The bundled Spanish voice can be copied directly into the runtime config directory and used with relative paths. For any other language, create your own WAV and matching transcription before updating the config.
 
 Bot names are normalized to lowercase before comparison. That means `Narrator`, `NARRATOR`, and `narrator` all resolve to the same configured entry. Two configured names that differ only by case are rejected as duplicates.
 
@@ -137,8 +151,8 @@ The repository includes an OpenClaw skill at [skill/openclaw-voice/SKILL.md](ski
 
 - Example long-form Spanish input: [examples/long_text_es.txt](examples/long_text_es.txt)
 - Example config template: [config/config.yaml](config/config.yaml)
-- Reference audio used during development: [assets/reference/bodega.wav](assets/reference/bodega.wav)
-- Matching reference transcript: [assets/reference/reference.txt](assets/reference/reference.txt)
+- Bundled Spanish reference audio: [assets/reference/spanish_male.wav](assets/reference/spanish_male.wav)
+- Bundled Spanish reference transcript: [assets/reference/spanish_male.txt](assets/reference/spanish_male.txt)
 
 Example end-to-end command:
 

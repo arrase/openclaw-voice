@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Voice - Local Qwen TTS for Discord Delivery</title>
+    <meta name="description" content="OpenClaw Voice is a local Python CLI that turns UTF-8 text into cloned speech with Qwen TTS and delivers the final MP3 through Discord.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <nav>
+                <a href="#" class="logo">OpenClaw<span>Voice</span></a>
+                <ul class="nav-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#usage">Usage</a></li>
+                    <li><a href="https://github.com/arrase/openclaw-voice" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Local Voice Cloning, Ready for Delivery</h1>
+            <p>OpenClaw Voice turns UTF-8 text into cloned speech with Qwen TTS, runs fully on your own GPU, and sends the final MP3 through a configured Discord bot. It is built for automation workflows that need local synthesis, predictable configuration, and no hosted inference API.</p>
+
+            <div class="hero-buttons">
+                <a href="#usage" class="cta-button">Get Started</a>
+                <a href="https://github.com/arrase/openclaw-voice" class="secondary-button" target="_blank">View on GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="features">
+        <div class="container">
+            <h2>Key Features</h2>
+            <div class="feature-list">
+
+                <div class="feature-item">
+                    <div class="feature-header">
+                        <div class="feature-icon"><i class="fas fa-microphone-lines"></i></div>
+                        <div>
+                            <h3>Local Qwen TTS</h3>
+                            <p class="feature-description">Generate speech locally on your own machine instead of calling a paid hosted API.</p>
+                        </div>
+                    </div>
+                    <div class="feature-body">
+                        <div class="usage-box">
+                            <p class="usage-title">Requirements</p>
+                            <table class="cmd-table">
+                                <tr><td>device_map</td><td>CUDA target such as cuda:0</td></tr>
+                                <tr><td>dtype</td><td>float16, bfloat16, or float32</td></tr>
+                                <tr><td>model_name</td><td>1.7B or 0.6B Qwen TTS model</td></tr>
+                            </table>
+                        </div>
+                        <div class="feature-code">model_name: Qwen/Qwen3-TTS-12Hz-1.7B-Base
+device_map: cuda:0
+dtype: bfloat16</div>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-header">
+                        <div class="feature-icon"><i class="fab fa-discord"></i></div>
+                        <div>
+                            <h3>Discord Delivery</h3>
+                            <p class="feature-description">Compress the final waveform to MP3 in memory and deliver it through a configured Discord bot.</p>
+                        </div>
+                    </div>
+                    <div class="feature-body">
+                        <div class="usage-box">
+                            <p class="usage-title">Bot Fields</p>
+                            <table class="cmd-table">
+                                <tr><td>name</td><td>Case-insensitive bot selector for --bot-name</td></tr>
+                                <tr><td>provider</td><td>discord</td></tr>
+                                <tr><td>token</td><td>Discord bot token</td></tr>
+                                <tr><td>user_id</td><td>Target DM recipient</td></tr>
+                            </table>
+                        </div>
+                        <div class="feature-code">tts:
+  - name: narrator
+    provider: discord
+    token: YOUR_DISCORD_BOT_TOKEN
+    user_id: 123456789012345678</div>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-header">
+                        <div class="feature-icon"><i class="fas fa-stream"></i></div>
+                        <div>
+                            <h3>Chunked Long-Form Audio</h3>
+                            <p class="feature-description">Split text on paragraphs, recursively break oversized chunks, and stitch the generated waveforms into one result.</p>
+                        </div>
+                    </div>
+                    <div class="feature-body">
+                        <div class="usage-box">
+                            <p class="usage-title">Chunk Controls</p>
+                            <table class="cmd-table">
+                                <tr><td>max_chunk_chars</td><td>Upper bound before recursive splitting</td></tr>
+                                <tr><td>inter_chunk_silence_ms</td><td>Silence inserted between generated chunks</td></tr>
+                                <tr><td>Output</td><td>One concatenated waveform before MP3 encoding</td></tr>
+                            </table>
+                        </div>
+                        <div class="feature-code">inter_chunk_silence_ms: 150
+max_chunk_chars: 1400
+
+# Paragraph-aware splitting first,
+# recursive splitting only when needed.</div>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-header">
+                        <div class="feature-icon"><i class="fas fa-sliders"></i></div>
+                        <div>
+                            <h3>YAML Configuration</h3>
+                            <p class="feature-description">Drive the entire runtime from a single YAML file that resolves relative paths from its own directory.</p>
+                        </div>
+                    </div>
+                    <div class="feature-body">
+                        <div class="usage-box">
+                            <p class="usage-title">Config Fields</p>
+                            <table class="cmd-table">
+                                <tr><td>language</td><td>Label passed to the model for generation</td></tr>
+                                <tr><td>ref_audio_path</td><td>Reference WAV stored next to config.yaml</td></tr>
+                                <tr><td>ref_text_path</td><td>Matching transcript stored next to config.yaml</td></tr>
+                                <tr><td>--config</td><td>Override the default runtime config file</td></tr>
+                            </table>
+                        </div>
+                        <div class="feature-code">language: Spanish
+ref_audio_path: spanish_male.wav
+ref_text_path: spanish_male.txt</div>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-header">
+                        <div class="feature-icon"><i class="fas fa-wave-square"></i></div>
+                        <div>
+                            <h3>Reference Voice Cloning</h3>
+                            <p class="feature-description">Use the bundled Spanish reference voice or provide your own WAV and matching transcript to anchor generation to a target speaker profile.</p>
+                        </div>
+                    </div>
+                    <div class="feature-body">
+                        <div class="usage-box">
+                            <p class="usage-title">Inputs</p>
+                            <table class="cmd-table">
+                                <tr><td>Spanish</td><td>Bundled spanish_male.wav plus spanish_male.txt</td></tr>
+                                <tr><td>Other languages</td><td>User-generated WAV plus matching transcript</td></tr>
+                                <tr><td>Location</td><td>Copy both files into the config directory</td></tr>
+                            </table>
+                        </div>
+                        <div class="feature-code">~/.openclaw-voice/
+  config.yaml
+  spanish_male.wav
+  spanish_male.txt
+
+# For other languages, place your own
+# WAV and transcript in the same directory.</div>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-header">
+                        <div class="feature-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+                        <div>
+                            <h3>OpenClaw Skill Ready</h3>
+                            <p class="feature-description">Ship the service with an OpenClaw skill so agents know how to invoke the command and what config it depends on.</p>
+                        </div>
+                    </div>
+                    <div class="feature-body">
+                        <div class="usage-box">
+                            <p class="usage-title">Repository Hooks</p>
+                            <table class="cmd-table">
+                                <tr><td>Skill</td><td>skill/openclaw-voice/SKILL.md</td></tr>
+                                <tr><td>CLI</td><td>openclaw-voice</td></tr>
+                            </table>
+                        </div>
+                        <div class="feature-code">The agent can select a bot,
+load ~/.openclaw-voice/config.yaml,
+and turn a text file into a Discord DM.</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="usage">
+        <div class="container">
+            <h2>Getting Started</h2>
+
+            <div class="command-group">
+                <p class="command-title">Requirements</p>
+                <p>OpenClaw Voice currently targets local CUDA execution. You need Python 3.11+, a CUDA-capable GPU with a working PyTorch CUDA runtime, and Discord bot credentials for delivery. A Spanish reference voice is bundled with the repository; for other languages, create your own WAV and matching transcript.</p>
+                <pre><code># Lower VRAM option
+model_name: Qwen/Qwen3-TTS-12Hz-0.6B-Base
+device_map: cuda:0</code></pre>
+            </div>
+
+            <div class="command-group">
+                <p class="command-title">Installation</p>
+                <pre><code>pipx install git+https://github.com/arrase/openclaw-voice.git</code></pre>
+            </div>
+
+            <div class="command-group">
+                <p class="command-title">Configuration</p>
+                <p>Copy the template config and the bundled Spanish reference files into the runtime directory. For any other language, replace those two files with your own WAV and matching transcription, then update the config.</p>
+                <pre><code>mkdir -p ~/.openclaw-voice
+cp config/config.yaml ~/.openclaw-voice/config.yaml
+cp assets/reference/spanish_male.wav ~/.openclaw-voice/spanish_male.wav
+cp assets/reference/spanish_male.txt ~/.openclaw-voice/spanish_male.txt</code></pre>
+            </div>
+
+            <div class="command-group">
+                <p class="command-title">Basic Usage</p>
+                <p>Generate speech from a UTF-8 text file and deliver the MP3 through the selected bot.</p>
+                <pre><code>openclaw-voice --input-text input.txt --bot-name narrator
+openclaw-voice --input-text examples/long_text_es.txt --bot-name narrator</code></pre>
+            </div>
+
+            <div class="command-group">
+                <p class="command-title">Alternate Entry Points</p>
+                <p>Use the Python module entry point or override the runtime configuration path when needed.</p>
+                <pre><code>python -m openclaw_voice --input-text input.txt --bot-name narrator
+openclaw-voice --input-text input.txt --bot-name narrator --config /path/to/config.yaml</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Built for local voice workflows that need cloned speech, deterministic configuration, and direct Discord delivery.</p>
+            <p>Powered by Qwen TTS, local CUDA execution, and a thin Python CLI that fits OpenClaw automation.</p>
+            <p><a href="https://github.com/arrase/openclaw-voice">View Source on GitHub</a></p>
+        </div>
+    </footer>
+
+</body>
+</html>
