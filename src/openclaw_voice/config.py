@@ -54,7 +54,8 @@ def load_config(config_path: Path | None = None) -> AppConfig:
         )
 
     try:
-        raw_config = yaml.safe_load(resolved_config_path.read_text(encoding="utf-8")) or {}
+        content = resolved_config_path.read_text(encoding="utf-8")
+        raw_config = yaml.safe_load(content) or {}
     except yaml.YAMLError as exc:
         raise ConfigError(f"Invalid YAML in {resolved_config_path}: {exc}") from exc
     except OSError as exc:
@@ -65,7 +66,9 @@ def load_config(config_path: Path | None = None) -> AppConfig:
 
     ref_audio_path = _resolve_path(raw_config, "ref_audio_path", resolved_config_path)
     ref_text_path = _resolve_path(raw_config, "ref_text_path", resolved_config_path)
-    inter_chunk_silence_ms = _read_int(raw_config, "inter_chunk_silence_ms", default=150)
+    inter_chunk_silence_ms = _read_int(
+        raw_config, "inter_chunk_silence_ms", default=150,
+    )
     max_chunk_chars = _read_int(raw_config, "max_chunk_chars", default=1400)
     tts = _load_tts_configs(raw_config)
 
@@ -76,7 +79,10 @@ def load_config(config_path: Path | None = None) -> AppConfig:
 
     return AppConfig(
         config_path=resolved_config_path,
-        model_name=_read_str(raw_config, "model_name", default="Qwen/Qwen3-TTS-12Hz-1.7B-Base"),
+        model_name=_read_str(
+            raw_config, "model_name",
+            default="Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+        ),
         language=_read_str(raw_config, "language"),
         ref_audio_path=ref_audio_path,
         ref_text_path=ref_text_path,
@@ -156,7 +162,8 @@ def _load_tts_configs(raw_config: dict[str, Any]) -> tuple[TTSBotConfig, ...]:
         if provider not in SUPPORTED_TTS_PROVIDERS:
             supported = ", ".join(sorted(SUPPORTED_TTS_PROVIDERS))
             raise ConfigError(
-                f"Unsupported provider {provider!r} in {context}. Choose one of: {supported}."
+                f"Unsupported provider {provider!r} in {context}. "
+                f"Choose one of: {supported}."
             )
 
         bot = TTSBotConfig(
@@ -185,13 +192,16 @@ def _read_str(
 ) -> str:
     value = raw_config.get(key, default)
     if value is None:
-        raise ConfigError(_prefix_context(f"Missing required configuration field: {key}", context))
+        msg = f"Missing required configuration field: {key}"
+        raise ConfigError(_prefix_context(msg, context))
     if not isinstance(value, str):
-        raise ConfigError(_prefix_context(f"Configuration field {key} must be a string.", context))
+        msg = f"Configuration field {key} must be a string."
+        raise ConfigError(_prefix_context(msg, context))
 
     cleaned = value.strip()
     if not cleaned:
-        raise ConfigError(_prefix_context(f"Configuration field {key} cannot be empty.", context))
+        msg = f"Configuration field {key} cannot be empty."
+        raise ConfigError(_prefix_context(msg, context))
     return cleaned
 
 
@@ -202,15 +212,23 @@ def _read_int(raw_config: dict[str, Any], key: str, default: int) -> int:
     return value
 
 
-def _read_user_id(raw_config: dict[str, Any], key: str, *, context: str | None = None) -> int:
+def _read_user_id(
+    raw_config: dict[str, Any],
+    key: str,
+    *,
+    context: str | None = None,
+) -> int:
     value = raw_config.get(key)
     if value is None:
-        raise ConfigError(_prefix_context(f"Missing required configuration field: {key}", context))
+        msg = f"Missing required configuration field: {key}"
+        raise ConfigError(_prefix_context(msg, context))
     if isinstance(value, bool):
-        raise ConfigError(_prefix_context(f"Configuration field {key} must be an integer.", context))
+        msg = f"Configuration field {key} must be an integer."
+        raise ConfigError(_prefix_context(msg, context))
     if isinstance(value, int):
         if value <= 0:
-            raise ConfigError(_prefix_context(f"Configuration field {key} must be greater than 0.", context))
+            msg = f"Configuration field {key} must be > 0."
+            raise ConfigError(_prefix_context(msg, context))
         return value
     if isinstance(value, str):
         cleaned = value.strip()
@@ -218,7 +236,8 @@ def _read_user_id(raw_config: dict[str, Any], key: str, *, context: str | None =
             parsed = int(cleaned)
             if parsed > 0:
                 return parsed
-    raise ConfigError(_prefix_context(f"Configuration field {key} must be a positive integer.", context))
+    msg = f"Configuration field {key} must be a positive integer."
+    raise ConfigError(_prefix_context(msg, context))
 
 
 def _prefix_context(message: str, context: str | None) -> str:

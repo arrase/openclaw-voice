@@ -30,7 +30,11 @@ def concatenate_segments(
     return np.concatenate(merged).astype(np.float32, copy=False)
 
 
-def encode_mp3(waveform: np.ndarray, sample_rate: int, bit_rate_kbps: int = 128) -> bytes:
+def encode_mp3(
+    waveform: np.ndarray,
+    sample_rate: int,
+    bit_rate_kbps: int = 128,
+) -> bytes:
     """Encode a mono waveform into MP3 bytes."""
 
     if sample_rate <= 0:

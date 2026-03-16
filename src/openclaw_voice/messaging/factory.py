@@ -11,6 +11,9 @@ def create_provider(bot_config: TTSBotConfig) -> MessagingProvider:
     """Instantiate the provider configured for the selected bot."""
 
     if bot_config.provider == "discord":
-        return DiscordMessagingProvider(token=bot_config.token, user_id=bot_config.user_id)
+        return DiscordMessagingProvider(
+            token=bot_config.token,
+            user_id=bot_config.user_id,
+        )
 
     raise DeliveryError(f"Unsupported provider {bot_config.provider!r}.")

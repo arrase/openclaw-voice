@@ -8,7 +8,12 @@ from pathlib import Path
 
 from openclaw_voice.audio import concatenate_segments, encode_mp3
 from openclaw_voice.chunking import ChunkingConfig, split_text_into_chunks
-from openclaw_voice.config import ConfigError, load_config, read_reference_text, resolve_tts_bot
+from openclaw_voice.config import (
+    ConfigError,
+    load_config,
+    read_reference_text,
+    resolve_tts_bot,
+)
 from openclaw_voice.messaging import AudioAttachment, create_provider
 from openclaw_voice.tts import VoiceCloningEngine
 

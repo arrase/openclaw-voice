@@ -14,14 +14,16 @@ from openclaw_voice.service import synthesize_and_send
 
 app = typer.Typer(
     add_completion=False,
-    help="Generate cloned speech from a text file and send it through a configured messaging bot.",
+    help=(
+        "Generate cloned speech from a text file"
+        " and send it through a configured messaging bot."
+    ),
     no_args_is_help=True,
 )
 
 
 def main() -> None:
     """Run the CLI application."""
-
     app()
 
 
@@ -38,21 +40,39 @@ def synthesize(
     input_text_path: Annotated[
         Path,
         typer.Option(
-            ..., "--input-text", exists=True, dir_okay=False, file_okay=True, readable=True, resolve_path=True,
+            ...,
+            "--input-text",
+            exists=True,
+            dir_okay=False,
+            file_okay=True,
+            readable=True,
+            resolve_path=True,
             help="Text file to convert into speech.",
         ),
     ],
     bot_name: Annotated[
         str,
-        typer.Option(..., "--bot-name", help="Configured bot name from the tts section to use for delivery."),
+        typer.Option(
+            ...,
+            "--bot-name",
+            help="Bot name from the tts config section.",
+        ),
     ],
     config_path: Annotated[
         Path | None,
-        typer.Option("--config", help="Override the default ~/.openclaw-voice/config.yaml file."),
+        typer.Option(
+            "--config",
+            help="Override the default config.yaml path.",
+        ),
     ] = None,
     version: Annotated[
         bool | None,
-        typer.Option("--version", callback=_show_version, is_eager=True, help="Show the application version."),
+        typer.Option(
+            "--version",
+            callback=_show_version,
+            is_eager=True,
+            help="Show the application version.",
+        ),
     ] = None,
 ) -> None:
     """Synthesize speech and deliver it with the selected messaging bot."""

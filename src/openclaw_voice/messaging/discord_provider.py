@@ -28,7 +28,10 @@ class DiscordMessagingProvider:
         if client.delivery_error is not None:
             raise client.delivery_error
         if not client.sent:
-            raise DeliveryError("Discord closed the session before sending the MP3 attachment.")
+            raise DeliveryError(
+                "Discord closed the session before"
+                " sending the MP3 attachment."
+            )
 
 
 class _DiscordDMClient(discord.Client):
@@ -54,21 +57,21 @@ class _DiscordDMClient(discord.Client):
             self.sent = True
         except discord.Forbidden as exc:
             self.delivery_error = DeliveryError(
-                "Discord blocked the DM. The user may have direct messages disabled, no shared server, or the bot may be blocked."
+                "Discord blocked the DM. The user may have"
+                " direct messages disabled, no shared server,"
+                " or the bot may be blocked."
             )
-            raise self.delivery_error from exc
         except discord.NotFound as exc:
             self.delivery_error = DeliveryError(
                 f"Discord could not find a user with ID {self._user_id}."
             )
-            raise self.delivery_error from exc
         except discord.HTTPException as exc:
-            self.delivery_error = DeliveryError(f"Discord could not send the MP3 attachment: {exc}")
-            raise self.delivery_error from exc
+            self.delivery_error = DeliveryError(
+                f"Discord could not send the MP3 attachment: {exc}"
+            )
         except Exception as exc:
             self.delivery_error = DeliveryError(
                 f"Unexpected Discord error: {type(exc).__name__}: {exc}"
             )
-            raise self.delivery_error from exc
         finally:
             await self.close()

@@ -48,6 +48,11 @@ def split_text_into_chunks(text: str, config: ChunkingConfig) -> list[str]:
             chunks.append(paragraph)
             continue
 
-        chunks.extend(piece.strip() for piece in overflow_splitter.split_text(paragraph) if piece.strip())
+        sub_chunks = overflow_splitter.split_text(paragraph)
+        chunks.extend(
+            piece.strip()
+            for piece in sub_chunks
+            if piece.strip()
+        )
 
     return chunks
