@@ -55,13 +55,13 @@ class _DiscordDMClient(discord.Client):
             )
             await user.send(file=audio_file)
             self.sent = True
-        except discord.Forbidden as exc:
+        except discord.Forbidden:
             self.delivery_error = DeliveryError(
                 "Discord blocked the DM. The user may have"
                 " direct messages disabled, no shared server,"
                 " or the bot may be blocked."
             )
-        except discord.NotFound as exc:
+        except discord.NotFound:
             self.delivery_error = DeliveryError(
                 f"Discord could not find a user with ID {self._user_id}."
             )

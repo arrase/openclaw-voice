@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from importlib.util import find_spec
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
 import numpy as np
 
 from openclaw_voice.config import AppConfig
+
+if TYPE_CHECKING:
+    from qwen_tts import Qwen3TTSModel
 
 
 class VoiceCloningEngine:
@@ -42,7 +45,9 @@ class VoiceCloningEngine:
             if sample_rate is None:
                 sample_rate = current_sample_rate
             elif sample_rate != current_sample_rate:
-                raise RuntimeError("The model returned inconsistent sample rates across chunks.")
+                raise RuntimeError(
+                    "The model returned inconsistent sample rates across chunks."
+                )
 
             segments.append(np.asarray(wavs[0], dtype=np.float32))
 
@@ -82,4 +87,6 @@ def _resolve_dtype(dtype_name: str) -> object:
         return dtype_map[dtype_name.lower()]
     except KeyError as exc:
         supported = ", ".join(sorted(dtype_map))
-        raise RuntimeError(f"Unsupported dtype {dtype_name!r}. Choose one of: {supported}.") from exc
+        raise RuntimeError(
+            f"Unsupported dtype {dtype_name!r}. Choose one of: {supported}."
+        ) from exc
